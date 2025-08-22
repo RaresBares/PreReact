@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Moderne ERP-Lösungen für das Gesundheitswesen – flexibel, sicher und webbasiert.">
+<meta property="og:title" content="PreReact – Digitale Verwaltung für den medizinischen Alltag">
+<meta property="og:description" content="PreReact bietet intelligente Softwarelösungen für Terminvergabe, Rechnungsstellung und Lagerverwaltung im Gesundheitsbereich.">
+<meta property="og:url" content="https://www.prereact.ch">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://www.prereact.ch/assets/icon.png">
+<link rel="shortcut icon" href="/assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/icon.png">
+
+  <title>Unsere Produkte – Prereact</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .fade {
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-hidden {
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
+      position: absolute;
+    }
+    .fade-visible {
+      opacity: 1;
+      transform: translateY(0);
+      position: relative;
+    }
+    .tab-btn {
+      position: relative;
+      overflow: hidden;
+    }
+    .tab-btn.active::before {
+      content: "";
+      position: absolute;
+      left: -50%;
+      top: 0;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      animation: sweep 1.5s infinite linear;
+    }
+    @keyframes sweep {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+  </style>
+</head>
+<body class="bg-black text-white overflow-x-hidden">
+
+<div id="navbar"></div>
+<script>
+    fetch("../navbar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("navbar").innerHTML = html;
+        });
+</script>
+
+<main class="relative z-10 px-6 pt-36 pb-24 max-w-5xl mx-auto">
+    <h1 class="text-4xl md:text-5xl font-bold text-center mb-12">Unsere Produkte</h1>
+
+    <!-- Switch Tabs -->
+    <div class="flex justify-center mb-12">
+      <div class="inline-flex bg-white bg-opacity-10 rounded-full overflow-hidden shadow-inner border border-white/20">
+        <button onclick="showProduct(0)" id="tab-0" class="tab-btn px-6 py-2 text-sm md:text-base transition-colors duration-300">
+          BillMate
+        </button>
+        <button onclick="showProduct(1)" id="tab-1" class="tab-btn px-6 py-2 text-sm md:text-base transition-colors duration-300">
+          StoreMate
+        </button>
+        <button onclick="showProduct(2)" id="tab-2" class="tab-btn px-6 py-2 text-sm md:text-base transition-colors duration-300">
+          TimeMate
+        </button>
+      </div>
+    </div>
+
+    <!-- Produkte -->
+    <div id="product-container">
+      <!-- Produkt A -->
+      <div class="fade fade-visible" id="product-0">
+        <!--<img src="/assets/product_a.jpg" alt="Produkt A" class="w-full rounded-xl shadow-xl mb-6" />-->
+        <h2 class="text-2xl font-semibold mb-2">BillMate – Rechnungssystem</h2>
+        <p class="text-gray-300 leading-relaxed">„Rechnungen leicht gemacht“ – das ist unser Motto, das uns bei der Entwicklung von Billmate begleitet hat. Unser Ziel war es, komplizierte und unübersichtliche Rechnungssoftware neu zu denken. Entstanden ist ein webbasiertes Rechnungssystem, das kinderleicht zu bedienen ist. Dank integrierter GOP-/EBM-Synchronisation maximieren wir die Effizienz Ihrer bisher lästigen Büroarbeit. Innerhalb von Sekunden erhalten Privatpatienten ihre Rechnung bequem per E-Mail. Für die Zukunft ist Großes geplant: Privatpatienten sollen direkt über ein Onlineportal zahlen können, und auch E-Rechnungen an gesetzliche Krankenkassen sollen automatisch abgewickelt werden – bei minimalem Aufwand für Sie, bei gleichbleibender Leistung.</p>
+      </div>
+
+      <!-- Produkt B -->
+      <div class="fade fade-hidden" id="product-1">
+        <!--<img src="/assets/product_b.jpg" alt="Produkt B" class="w-full rounded-xl shadow-xl mb-6" />-->
+        <h2 class="text-2xl font-semibold mb-2">StoreMate – Lagerverwaltungssystem</h2>
+        <p class="text-gray-300 leading-relaxed">Behalten Sie rund um die Uhr den Überblick über Ihren Bestand. Sie erhalten von uns einen Hand-Barcodescanner und einen Barcode-Etikettendrucker. Beim Wareneingang registrieren Sie in unserem Programm das Verfallsdatum Ihrer Waren und bringen das automatisch gedruckte Barcode-Etikett am Produkt an. Unsere intelligenten Dienste informieren Sie frühzeitig über bevorstehende Ablaufdaten, das Unterschreiten von Mindestbeständen, über- oder untermäßigen Verbrauch und vieles mehr. Überprüfen Sie Ihren Warenbestand komfortabel im Web und lassen Sie sich automatisch eine Bestellliste für Ihren Zulieferer generieren.</p>
+      </div>
+
+      <!-- Produkt C -->
+      <div class="fade fade-hidden" id="product-2">
+        <!--<img src="/assets/planung.png" alt="Terminplanung" class="w-full rounded-xl shadow-xl mb-6" />-->
+        <h2 class="text-2xl font-semibold mb-2">TimeMate  - Patientenmanagment</h2>
+        <p class="text-gray-300 leading-relaxed">Telefonische Terminvereinbarungen und zeitaufwändiges Patientenmanagement sind längst überholt – wir haben dem veralteten Standard den Kampf angesagt und bringen mit TimeMate frischen Wind in Ihre Praxisabläufe.
+
+Ihre Patienten können bequem online Termine buchen, und die gesamte Patientenkommunikation läuft zentral über dasselbe Patientenportal. Die präzise Protokollierung unserer Systeme sorgt für Nachweisbarkeit und Sicherheit.
+
+Legen Sie Patienteninformationen ganz einfach digital ab, genießen Sie höchsten Komfort – und vermeiden Sie unnötigen bürokratischen Aufwand.
+
+</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="text-center py-6 text-gray-500 bg-black relative z-10">
+    &copy; 2025 Prereact
+  </footer>
+
+  <script>
+    function showProduct(index) {
+      const products = document.querySelectorAll('#product-container > div');
+      const tabs = document.querySelectorAll('.tab-btn');
+
+      products.forEach((el, i) => {
+        el.classList.toggle('fade-visible', i === index);
+        el.classList.toggle('fade-hidden', i !== index);
+      });
+
+      tabs.forEach((tab, i) => {
+        tab.classList.remove('bg-white', 'text-black', 'font-semibold', 'active');
+        if (i === index) {
+          tab.classList.add('bg-white', 'text-black', 'font-semibold', 'active');
+        }
+      });
+    }
+
+    // Start mit Produkt A
+    showProduct(0);
+  </script>
+
+</body>
+</html>

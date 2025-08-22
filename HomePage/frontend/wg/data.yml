@@ -1,0 +1,49 @@
+---
+payments:
+- name: Pia
+  amount: 10
+  paid: true
+- name: Fred
+  amount: 10
+  paid: true
+- name: Rares
+  amount: 10
+  paid: true
+- name: Ding
+  amount: 10
+  paid: true
+- name: Magdalena
+  amount: 5
+  paid: true
+- name: Nicolas
+  amount: 5
+  paid: true
+- name: Duru
+  amount: 10
+  paid: true
+- name: Mengze
+  amount: 10
+  paid: true
+- name: Felix
+  amount: 10
+  paid: true
+- name: Alan
+  amount: 10
+  paid: true
+shopping: []
+history:
+- date: "2025-07-28"
+  type: in
+  amount: 90
+  receipts: []
+- date: "2025-07-29"
+  type: out
+  amount: 30.98
+  receipts:
+  - beleg1.pdf
+- date: "2025-07-30"
+  type: out
+  amount: 52.04
+  receipts:
+  - beleg2.pdf
+...

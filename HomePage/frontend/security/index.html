@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Moderne ERP-Lösungen für das Gesundheitswesen – flexibel, sicher und webbasiert.">
+<meta property="og:title" content="PreReact – Digitale Verwaltung für den medizinischen Alltag">
+<meta property="og:description" content="PreReact bietet intelligente Softwarelösungen für Terminvergabe, Rechnungsstellung und Lagerverwaltung im Gesundheitsbereich.">
+<meta property="og:url" content="https://www.prereact.ch">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://www.prereact.ch/assets/icon.png">
+<link rel="shortcut icon" href="/assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/icon.png">
+
+  <title>Datenschutz & Sicherheit – Prereact</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .fade-up {
+      transform: translateY(40px);
+      opacity: 0;
+      transition: all 0.8s ease;
+    }
+    .fade-up.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="relative">
+  <!-- Navbar -->
+  <div id="navbar"></div>
+  <script>
+      fetch("../navbar.html")
+          .then(res => res.text())
+          .then(html => {
+              document.getElementById("navbar").innerHTML = html;
+          });
+  </script>
+
+  <main class="pt-24 px-6 max-w-4xl mx-auto">
+    <section class="mb-16">
+      <h1 class="text-4xl font-bold text-center mb-6">Sicherheit & Datenschutz</h1>
+      <p class="text-lg text-gray-300 text-center">Ihre Daten sind bei uns in guten Händen. Wir sorgen für maximale Sicherheit und Transparenz.</p>
+    </section>
+
+    <section class="fade-up mb-12">
+      <h2 class="text-2xl font-semibold mb-3">Datensicherheit</h2>
+      <p class="text-gray-400">Alle Ihre Daten werden verschlüsselt übertragen und in DSGVO-konformen Rechenzentren gespeichert. Unsere Systeme sind durch modernste Firewalls und Überwachungstechniken geschützt.</p>
+    </section>
+
+    <section class="fade-up mb-12">
+      <h2 class="text-2xl font-semibold mb-3">Transparenz & Kontrolle</h2>
+      <p class="text-gray-400">Sie behalten jederzeit die Kontrolle über Ihre Daten. In unserem Kontrollzentrum sehen Sie, welche Informationen erfasst werden, und können diese verwalten oder löschen. DSGVO-konform protokollieren wir zudem alle Zugriffe, sodass unbefugte Eingriffe nicht unbemerkt bleiben.</p>
+    </section>
+
+    <section class="fade-up mb-12">
+      <h2 class="text-2xl font-semibold mb-3">Rechtliche Grundlage</h2>
+      <p class="text-gray-400">Unsere Anwendungen erfüllen die strengen Anforderungen der DSGVO sowie zahlreicher weiterer EU-Datenschutzrichtlinien.
+Wir setzen alles daran, höchste Sicherheitsstandards und Datenschutz zu gewährleisten – und planen, künftig mit Zertifizierungen wie ISO 27001 oder HDS zu arbeiten.</p>
+    </section>
+
+    <section class="fade-up mb-12">
+      <h2 class="text-2xl font-semibold mb-3">Datenminimierung</h2>
+      <p class="text-gray-400">Wir erfassen ausschließlich jene Informationen, die für den Betrieb zwingend erforderlich sind. Eine Weitergabe an Dritte erfolgt niemals ohne Ihre ausdrückliche Zustimmung. Alle Daten werden in unseren Systemen intern übertragen, verarbeitet und verschlüsselt gespeichert.</p>
+    </section>
+
+    <footer class="text-center py-8 text-gray-500 text-sm">
+      &copy; 2025 Prereact. Alle Rechte vorbehalten.
+    </footer>
+  </main>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
+

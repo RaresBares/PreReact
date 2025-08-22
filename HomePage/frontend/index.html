@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Moderne ERP-Lösungen für das Gesundheitswesen – flexibel, sicher und webbasiert.">
+<meta property="og:title" content="PreReact – Digitale Verwaltung für den medizinischen Alltag">
+<meta property="og:description" content="PreReact bietet intelligente Softwarelösungen für Terminvergabe, Rechnungsstellung und Lagerverwaltung im Gesundheitsbereich.">
+<meta property="og:url" content="https://www.prereact.ch">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://www.prereact.ch/assets/icon.png">
+<link rel="shortcut icon" href="/assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/icon.png">
+
+  <title>Prereact – Intelligente Lösungen</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    canvas#netCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s ease, transform 1s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+  
+</head>
+<body class="bg-black text-white overflow-x-hidden">
+<div id="navbar"></div>
+<script>
+    fetch("./navbar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("navbar").innerHTML = html;
+        });
+</script>  <canvas id="netCanvas"></canvas>
+
+  <section class="min-h-screen flex flex-col justify-center items-center text-center px-4 z-10 relative">
+    <h1 class="text-4xl md:text-6xl font-bold fade-in">Intelligente Softwarelösungen</h1>
+    <p class="mt-4 text-lg text-gray-300 fade-in delay-300">Wir entwickeln Ihre ERP-Systeme nach Ihren Bedürfnissen</p>
+    <a href="#presentation" class="mt-8 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg transition fade-in delay-500">Jetzt entdecken</a>
+  </section>
+
+  <section id="presentation" class="relative z-10 py-24 px-6 bg-black">
+    <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-16">
+      <div class="flex flex-col justify-center fade-in">
+        <h2 class="text-3xl font-semibold mb-4">Rechnungssoftware</h2>
+        <p class="text-gray-300">Unser System <b>BillMate</b> ermöglicht die schnelle, ortsunabhängige Erstellung personalisierter Rechnungen – exakt zugeschnitten auf die Anforderungen im medizinischen Umfeld.</p>
+      </div>
+      <img src="/assets/rechnung.png" class="rounded-lg shadow-lg fade-in" alt="Rechnungssoftware" />
+
+      <div class="flex flex-col justify-center fade-in">
+        <h2 class="text-3xl font-semibold mb-4">Lagerverwaltungssystem</h2>
+        <p class="text-gray-300">Mit unserer Software <b>StoreMate</b> behalten Sie stets den Überblick über Ihren Lagerbestand. Vollständig optimiert für pharmazeutische Anwendungen überzeugt das System durch integrierte MHD-Überwachung und maximale Flexibilität dank intuitivem Web-Panel.</p>
+      </div>
+      <img src="/assets/lager.png" class="rounded-lg shadow-lg fade-in" alt="Lagerverwaltungssystem" />
+
+      <div class="flex flex-col justify-center fade-in">
+        <h2 class="text-3xl font-semibold mb-4">Patientenmanagement-System</h2>
+        <p class="text-gray-300">Lassen Sie Ihre Kund:innen mit <b>TimeMate</b> selbst entscheiden, wann sie ihre Termine buchen möchten.
+			Speichern und verwalten Sie Kundendaten sicher – und wickeln Sie Terminvergaben sowie die Kommunikation effizient, online und transparent ab.</p>
+      </div>
+      <img src="/assets/warte.png" class="rounded-lg shadow-lg fade-in" alt="Patientenmanagement-System" />
+    </div>
+  </section>
+
+  <footer class="text-center py-6 text-gray-500 bg-black relative z-10">&copy; 2025 Prereact</footer>
+
+  <script>
+    // Netzwerk-Hintergrund
+    const canvas = document.getElementById('netCanvas'),
+          ctx = canvas.getContext('2d');
+    let w, h, points = [];
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      points = [];
+      for (let i = 0; i < 100; i++) {
+        points.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5
+        });
+      }
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+      for (let i = 0; i < points.length; i++) {
+        let p = points[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#aaa';
+        ctx.fill();
+        for (let j = i + 1; j < points.length; j++) {
+          let q = points[j], dx = p.x - q.x, dy = p.y - q.y;
+          let dist = Math.hypot(dx, dy);
+          if (dist < 100) {
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 100})`;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+
+    // Scroll Animation
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+
+
+
+</body>
+</html>

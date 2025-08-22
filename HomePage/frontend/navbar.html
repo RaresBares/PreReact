@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prereact Navbar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-transparent">
+  <nav class="bg-black bg-opacity-80 fixed w-full z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" target="_top" class="text-xl font-bold text-white">Prereact.</a>
+      <button id="menu-toggle" class="text-white lg:hidden focus:outline-none text-2xl">☰</button>
+      <ul id="menu" class="hidden lg:flex gap-6 text-sm">
+	  	<li><a href="/servicepanel/" target="_top" class="text-white hover:text-blue-400">Kundenportal</a></li>
+        <li><a href="/status/" target="_top" class="text-white hover:text-blue-400">Status</a></li>
+        <li><a href="/security/" target="_top" class="text-white hover:text-blue-400">Sicherheit</a></li>
+        <li><a href="/products/" target="_top" class="text-white hover:text-blue-400">Produkte</a></li>
+        <li><a href="/team/" target="_top" class="text-white hover:text-blue-400">Team</a></li>
+        <li><a href="/contact/" target="_top" class="text-white hover:text-blue-400">Kontakt</a></li>
+        <li><a href="/impressum/" target="_top" class="text-white hover:text-blue-400">Impressum</a></li>
+		<li class="ml-2 transition-transform hover:scale-110">
+  <button id="lang-toggle" class="block w-6 h-6">
+    <img src="https://flagcdn.com/w40/gb.png" alt="Sprache wechseln" class="w-full h-full object-cover rounded-full" />
+  </button>
+</li>
+
+      </ul>
+    </div>
+    <div id="mobile-menu" class="lg:hidden hidden px-6 pb-4 bg-black bg-opacity-90">
+      <ul class="flex flex-col gap-3 text-sm">
+	  	<li><a href="/servicepanel/" target="_top" class="text-white hover:text-blue-400">Kundenportal</a></li>
+        <li><a href="/status/" target="_top" class="text-white hover:text-blue-400 block">Status</a></li>
+        <li><a href="/security/" target="_top" class="text-white hover:text-blue-400 block">Sicherheit</a></li>
+        <li><a href="/products/" target="_top" class="text-white hover:text-blue-400 block">Produkte</a></li>
+        <li><a href="/team/" target="_top" class="text-white hover:text-blue-400 block">Team</a></li>
+        <li><a href="/contact/" target="_top" class="text-white hover:text-blue-400 block">Kontakt</a></li>
+        <li><a href="/impressum/" target="_top" class="text-white hover:text-blue-400 block">Impressum</a></li>
+<li class="ml-2 transition-transform hover:scale-110">
+  <button id="lang-toggle-mobile" class="block w-6 h-6">
+    <img src="https://flagcdn.com/w40/gb.png" alt="Sprache wechseln" class="w-full h-full object-cover rounded-full" />
+  </button>
+</li>
+
+      </ul>
+    </div>
+  </nav>
+<script>
+  document.getElementById('menu-toggle').addEventListener('click', () => {
+    document.getElementById('mobile-menu').classList.toggle('hidden');
+  });
+
+  function toggleLanguage() {
+    const current = window.location.pathname;
+    if (current.startsWith('/en')) {
+      window.location.href = current.replace(/^\/en/, '') || '/';
+    } else {
+      window.location.href = '/en' + current;
+    }
+  }
+
+  document.getElementById('lang-toggle')?.addEventListener('click', toggleLanguage);
+  document.getElementById('lang-toggle-mobile')?.addEventListener('click', toggleLanguage);
+</script>
+
+
+</body>
+</html>

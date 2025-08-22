@@ -1,0 +1,70 @@
+.fancy-save, .fancy-reset {
+    min-width: 90px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+.fancy-save .btn-text,
+.fancy-save .btn-icon,
+.fancy-reset .btn-text,
+.fancy-reset .btn-icon {
+    position: absolute;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.fancy-save .btn-text,
+.fancy-reset .btn-text {
+    opacity: 1;
+}
+
+.fancy-save .btn-icon,
+.fancy-reset .btn-icon {
+    opacity: 0;
+}
+
+.fancy-save:hover .btn-text,
+.fancy-reset:hover .btn-text {
+    opacity: 0;
+}
+
+.fancy-save:hover .btn-icon,
+.fancy-reset:hover .btn-icon {
+    opacity: 1;
+}
+.fancy-search {
+    min-width: 90px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+.fancy-search .btn-text,
+.fancy-search .btn-icon {
+    position: absolute;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.fancy-search .btn-text {
+    opacity: 1;
+}
+
+.fancy-search .btn-icon {
+    opacity: 0;
+}
+
+.fancy-search:hover .btn-text {
+    opacity: 0;
+}
+
+.fancy-search:hover .btn-icon {
+    opacity: 1;
+}

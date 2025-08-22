@@ -1,0 +1,78 @@
+<!-- /Website/Impressum/index.html -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Moderne ERP-Lösungen für das Gesundheitswesen – flexibel, sicher und webbasiert.">
+<meta property="og:title" content="PreReact – Digitale Verwaltung für den medizinischen Alltag">
+<meta property="og:description" content="PreReact bietet intelligente Softwarelösungen für Terminvergabe, Rechnungsstellung und Lagerverwaltung im Gesundheitsbereich.">
+<meta property="og:url" content="https://www.prereact.ch">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://www.prereact.ch/assets/icon.png">
+<link rel="shortcut icon" href="/assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/icon.png">
+
+  <title>Impressum – Prereact</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="bg-black text-white min-h-screen overflow-x-hidden relative">
+<div id="navbar"></div>
+<script>
+    fetch("../navbar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("navbar").innerHTML = html;
+        });
+</script>
+
+  <section class="pt-32 px-6 pb-20 text-center max-w-2xl mx-auto relative z-10">
+    <h1 class="text-4xl md:text-5xl font-bold mb-6 fade-in">Impressum</h1>
+    <p class="text-gray-300 fade-in delay-200">Angaben gemäß § 5 TMG</p>
+    
+    <div class="mt-10 text-left text-gray-400 space-y-4 fade-in delay-400">
+      <p><strong>Prereact AG</strong><br>
+      Oberasbach 85<br>
+      91710 Gunzenhausen<br>
+      Deutschland</p>
+
+      <p><strong>Vertreten durch:</strong><br>
+      Rares Sahleanu</p>
+
+      <p><strong>Kontakt:</strong><br>
+      E-Mail: <a href="mailto:info@prereact.ch" class="text-blue-400 hover:underline">info@prereact.ch</a></p>
+
+      <p><strong>Umsatzsteuer-ID:</strong><br>
+      DE123456789</p>
+
+      <p><strong>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:</strong><br>
+      Rares Sahleanu<br>
+      Oberasbach 85<br>
+      91710 Gunzenhausen</p>
+    </div>
+  </section>
+
+  <footer class="text-center py-6 text-gray-500 bg-black z-10 relative">&copy; 2025 Prereact</footer>
+
+  <script>
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Moderne ERP-Lösungen für das Gesundheitswesen – flexibel, sicher und webbasiert.">
+<meta property="og:title" content="PreReact – Digitale Verwaltung für den medizinischen Alltag">
+<meta property="og:description" content="PreReact bietet intelligente Softwarelösungen für Terminvergabe, Rechnungsstellung und Lagerverwaltung im Gesundheitsbereich.">
+<meta property="og:url" content="https://www.prereact.ch">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://www.prereact.ch/assets/icon.png">
+<link rel="shortcut icon" href="/assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/icon.png">
+
+  <title>Kontakt – Prereact</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s ease, transform 1s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="bg-black text-white overflow-x-hidden">
+
+<div id="navbar"></div>
+<script>
+    fetch("../navbar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("navbar").innerHTML = html;
+        });
+</script>
+
+  <main class="relative z-10 px-6 py-32 max-w-2xl mx-auto">
+    <h1 class="text-4xl md:text-5xl font-bold text-center mb-4 fade-in">Kontaktiere uns</h1>
+    <p class="text-center text-gray-400 mb-10 fade-in">Du hast Fragen, Ideen oder Feedback? Schreib uns direkt oder nutze das Formular!</p>
+
+    <div class="text-center mb-12 space-y-3 fade-in">
+      <p class="text-gray-300"><strong>Telefon:</strong> <span class="text-white">+41 76 123 45 67</span></p>
+      <p class="text-gray-300">
+        <strong>E-Mail:</strong> 
+        <a href="mailto:help@prereact.ch" class="text-blue-400 hover:underline">help@prereact.ch</a>
+      </p>
+    </div>
+
+
+
+    <form method="POST" class="space-y-6 fade-in">
+      <input name="name" type="text" required placeholder="Dein Name *"
+        class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+
+      <input name="telefon" type="text" required placeholder="Telefonnummer *"
+        class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+
+      <input name="email" type="email" placeholder="E-Mail (optional)"
+        class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+
+      <textarea name="nachricht" rows="5" required placeholder="Deine Nachricht *"
+        class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></textarea>
+
+      <div class="text-center">
+        <button type="submit"
+          class="bg-blue-600 hover:bg-blue-500 transition px-6 py-3 rounded-xl shadow-md hover:shadow-lg">
+          Absenden ✉️
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <footer class="text-center py-6 text-gray-500 bg-black relative z-10">
+    &copy; 2025 Prereact
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>

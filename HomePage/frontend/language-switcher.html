@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+    }
+
+    .lang-container {
+      position: relative;
+      width: 60px;
+      height: 60px;
+    }
+
+    .main-button {
+      background: #ffffffcc;
+      border-radius: 9999px;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      transition: transform 0.3s ease;
+      font-size: 24px;
+    }
+
+    .main-button:hover {
+      transform: scale(1.1);
+    }
+
+    .flag {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      opacity: 0;
+      transform: scale(0);
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+
+    .lang-container.open .flag {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .flag img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+    }
+
+    /* Animation Positionen */
+    .flag.de {
+      top: -60px;
+      left: 8px;
+    }
+
+    .flag.en {
+      top: 8px;
+      right: -60px;
+    }
+
+    .flag.fr {
+      bottom: -60px;
+      left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="lang-container" id="langBox">
+    <div class="main-button" onclick="toggleLangBox()">🌐</div>
+
+    <div class="flag de" onclick="switchLang('de')">
+      <img src="https://flagcdn.com/w40/de.png" alt="Deutsch">
+    </div>
+    <div class="flag en" onclick="switchLang('en')">
+      <img src="https://flagcdn.com/w40/gb.png" alt="Englisch">
+    </div>
+    <div class="flag fr" onclick="switchLang('fr')">
+      <img src="https://flagcdn.com/w40/fr.png" alt="Französisch">
+    </div>
+  </div>
+
+  <script>
+    function toggleLangBox() {
+      document.getElementById("langBox").classList.toggle("open");
+    }
+
+    function switchLang(lang) {
+      alert("Sprache: " + lang.toUpperCase());
+      // Beispiel: window.top.location.href = '/' + lang + '/index.html';
+      document.getElementById("langBox").classList.remove("open");
+    }
+  </script>
+</body>
+</html>

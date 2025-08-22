@@ -1,0 +1,39 @@
+# Byte-compiled / caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Pycharm / IDE
+.idea/
+.vscode/
+
+# System-Dateien
+.DS_Store
+Thumbs.db
+
+# Logs und Datenbanken
+*.log
+*.sqlite3
+*.db
+
+# Secrets / Config
+.env
+*.pem
+*.key
+
+# Build-Artifakte / Docker
+build/
+dist/
+*.egg-info/
+docker-compose.override.yml
+
+# Uvicorn-Reload
+*.reload
+
+# Beispiele-Ordner (wenn du ihn nicht versionierst)
+examples/

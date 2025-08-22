@@ -1,0 +1,160 @@
+services:
+  edge-proxy:
+    image: nginx:alpine    
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    volumes:
+      - ./L1-edge/nginx.conf:/etc/nginx/nginx.conf:ro #nginx config
+      - ./L1-edge/certs:/etc/nginx/certs:ro
+      - ./L1-edge/letsencrypt:/etc/letsencrypt:ro
+      - ./L1-edge/www:/var/www/certbot
+    depends_on:
+      - storemate-frontend
+      - authentification-frontend
+      - mainpage-frontend
+    networks: [mainpage, storemate, authentification]
+
+
+  certbot:
+    image: certbot/certbot:latest
+    profiles: ["prod"]
+    volumes:
+      - ./L1-edge/letsencrypt:/etc/letsencrypt
+      - ./L1-edge/www:/var/www/certbot
+    entrypoint: sh
+    command: -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --agree-tos --non-interactive || true; sleep 12h; done"
+    restart: unless-stopped
+
+
+
+  storemate-backend:
+    build:
+      context: ./StoreMate/backend
+      dockerfile: Dockerfile
+    expose: ["8001"]
+    restart: unless-stopped
+    networks:
+      - storemate
+      - authentification
+    env_file:
+      - ./environments/storemate.env
+    depends_on:
+      storemate-db:
+        condition: service_healthy
+
+  storemate-frontend:
+    build:
+      context: ./StoreMate/frontend/
+      dockerfile: Dockerfile
+    env_file: ./environments/storemate.env
+    volumes:
+      - ./StoreMate/frontend/webserver/nginx.conf:/etc/nginx/nginx.conf
+    ports: ["8002:8002"]
+    restart: unless-stopped
+    networks: [storemate]
+    depends_on: [storemate-backend]
+  storemate-db:
+    image: postgres:16-alpine
+    env_file:
+      - ./environments/storemate.env
+    volumes:
+      - storemate-data:/var/lib/postgresql/data
+    expose: ["8003"]
+    command: -p 8003        # Postgres hört jetzt intern auf 8103
+
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1 -p 8003 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [ storemate ]
+
+
+
+
+  authentification-backend:
+    build:
+      context: ./Authentification/backend/
+      dockerfile: Dockerfile
+    ports: ["8101:8101"]
+    env_file:
+      - ./environments/authentification.env
+    restart: unless-stopped
+    networks: [authentification, storemate]
+    depends_on:
+      authentification-db:
+        condition: service_healthy
+
+  authentification-frontend:
+    build:
+      context: ./Authentification/frontend/
+      dockerfile: Dockerfile
+    env_file: ./environments/authentification.env
+    volumes:
+      - ./Authentification/frontend/webserver/nginx.conf:/etc/nginx/nginx.conf
+      - ./Authentification/frontend:/var/www/html:ro
+    expose: ["8102"]
+    restart: unless-stopped
+    networks: [authentification]
+    depends_on: [authentification-php, authentification-backend]
+
+  authentification-db:
+    image: postgres:16-alpine
+    env_file:
+      - ./environments/auth_db.env
+    volumes:
+      - auth-data:/var/lib/postgresql/data
+    command: -p 8103        # Postgres hört jetzt intern auf 8103
+    expose: ["8103"]
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1 -p 8103 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [ authentification ]
+
+  authentification-php:
+    image: php:8.3-fpm-alpine
+    volumes:
+      - ./Authentification/frontend:/var/www/html   # dein PHP Code
+      - ./Authentification/php/zz-pool.conf:/usr/local/etc/php-fpm.d/zz-pool.conf:ro
+    networks: [authentification]
+    expose: ["8104"]
+
+
+  mainpage-frontend:
+    image: nginx:alpine
+    env_file:
+      - environments/homepage.env
+    restart: unless-stopped
+    volumes:
+      - ./HomePage/frontend/webserver/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./HomePage/frontend:/usr/share/nginx/html:ro
+    expose: ["8202"]
+    networks: [mainpage]
+
+
+
+volumes:
+  storemate-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./StoreMate/database
+      o: bind
+  auth-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./Authentification/database
+      o: bind
+networks:
+  mainpage:
+  authentification:
+  storemate:

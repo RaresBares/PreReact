@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+python-dotenv
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+requests
+pydantic-settings>=2.0.0
+# requirements.txt
+httpx>=0.27,<0.28
+slowapi>=0.1.9
+limits>=3.0
+email-validator>=2.1.0
