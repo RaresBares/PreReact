@@ -1,0 +1,50 @@
+services:
+  storemate-backend:
+    build: ./StoreMate/backend
+    ports: ["8001:8001"]
+    volumes:
+      - ./StoreMate/backend:/app
+    env_file: ./environments/storemate.env
+    networks: [storemate]
+
+  storemate-frontend:
+    build: ./StoreMate/frontend
+    ports: ["8002:8002"]
+    volumes:
+      - ./StoreMate/frontend:/usr/share/nginx/html:ro
+      - ./StoreMate/frontend/webserver/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    env_file: ./environments/storemate.env
+    networks: [storemate]
+
+  storemate-db:
+    image: postgres:16-alpine
+    ports: ["8003:8003"]
+    env_file: ./environments/storemate.env
+    volumes:
+      - ./StoreMate/database:/var/lib/postgresql/data
+    networks: [storemate]
+
+  authentification-backend:
+    build: ./Authentification/backend
+    ports: ["8101:8101"]
+    volumes:
+      - ./Authentification/backend:/app
+    env_file: ./environments/authentification.env
+    networks: [authentification, storemate]
+
+  authentification-frontend:
+    build: ./Authentification/frontend
+    ports: ["8102:8102"]
+    volumes:
+      - ./Authentification/frontend:/usr/share/nginx/html:ro
+      - ./Authentification/frontend/webserver/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    env_file: ./environments/authentification.env
+    networks: [authentification]
+
+  authentification-db:
+    image: postgres:16-alpine
+    ports: ["8103:8103"]
+    env_file: ./environments/auth_db.env
+    volumes:
+      - ./Authentification/database:/var/lib/postgresql/data
+    networks: [authentification]
