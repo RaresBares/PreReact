@@ -7,7 +7,6 @@ import './buttons.css'
 import { router } from './router.tsx'
 
 
-console.log("Hallo aus React!");
 
 createRoot(document.getElementById('root')!).render(
 

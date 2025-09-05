@@ -26,6 +26,7 @@ async function postAuthDebug(body: unknown) {
     }
 }
 
+
 export default function Callback() {
     const [sp] = useSearchParams();
     const nav = useNavigate();
