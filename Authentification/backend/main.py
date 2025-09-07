@@ -183,6 +183,25 @@ def me(user: User = Depends(current_user)):
 def reg_date(user: User = Depends(current_user)):
     return {"registered_at": user.registered_at.isoformat()}
 
+@app.get("/exists/id/{restaurant_id}")
+def exists_id(restaurant_id: str, db: Session = Depends(get_db)):
+    uid = None
+    try:
+        uid = int(str(restaurant_id))
+    except Exception:
+        return {"exists": False, "id": False, "username": False}
+    u = db.query(User).filter(User.id == uid).first()
+    if not u:
+        return {"exists": False, "id": False, "username": False}
+    return {"exists": True, "id": u.id, "username": u.username}
+
+@app.get("/exists/username/{username}")
+def exists_username(username: str, db: Session = Depends(get_db)):
+    u = db.query(User).filter(User.username == username).first()
+    if not u:
+        return {"exists": False, "id": False, "username": False}
+    return {"exists": True, "id": u.id, "username": u.username}
+
 
 @app.get("/me/last_login")
 def last_login(user: User = Depends(current_user)):

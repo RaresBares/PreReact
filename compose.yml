@@ -1,32 +1,18 @@
 services:
   edge-proxy:
-    image: nginx:alpine    
+    image: nginx:alpine
     ports:
       - "80:80"
       - "443:443"
     restart: unless-stopped
     volumes:
-      - ./L1-edge/nginx.conf:/etc/nginx/nginx.conf:ro #nginx config
-      - ./L1-edge/certs:/etc/nginx/certs:ro
-      - ./L1-edge/letsencrypt:/etc/letsencrypt:ro
-      - ./L1-edge/www:/var/www/certbot
+      - ./L1-edge/nginx.dev.conf:/etc/nginx/nginx.conf:ro #nginx config
     depends_on:
       - storemate-frontend
       - authentification-frontend
       - mainpage-frontend
-    networks: [mainpage, storemate, authentification]
-
-
-  certbot:
-    image: certbot/certbot:latest
-    profiles: ["prod"]
-    volumes:
-      - ./L1-edge/letsencrypt:/etc/letsencrypt
-      - ./L1-edge/www:/var/www/certbot
-    entrypoint: sh
-    command: -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --agree-tos --non-interactive || true; sleep 12h; done"
-    restart: unless-stopped
-
+      - timemate-frontend
+    networks: [timemate, mainpage, storemate, authentification]
 
 
   storemate-backend:
@@ -72,6 +58,52 @@ services:
       retries: 5
       start_period: 10s
     networks: [ storemate ]
+
+
+
+  timemate-backend:
+    build:
+      context: ./TimeMate/backend
+      dockerfile: Dockerfile
+    ports: ["8301:8301"]
+    restart: unless-stopped
+    networks:
+      - timemate
+      - authentification
+    env_file:
+      - ./environments/timemate.env
+    depends_on:
+      timemate-db:
+        condition: service_healthy
+
+  timemate-frontend:
+    build:
+      context: ./TimeMate/frontend/
+      dockerfile: Dockerfile
+    env_file: ./environments/storemate.env
+    volumes:
+      - ./TimeMate/frontend/webserver/nginx.conf:/etc/nginx/nginx.conf
+    ports: ["8302:8302"]
+    restart: unless-stopped
+    networks: [timemate]
+    depends_on: [timemate-backend]
+  timemate-db:
+    image: postgres:16-alpine
+    env_file:
+      - ./environments/timemate.env
+    volumes:
+      - timemate-data:/var/lib/postgresql/data
+    expose: ["8303"]
+    command: -p 8303        # Postgres hört jetzt intern auf 8103
+
+    restart: unless-stopped
+    healthcheck: #pg_isready -U time -d timemate -h 127.0.0.1 -p 8303
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1 -p 8303 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [ timemate ]
 
 
 
@@ -148,6 +180,12 @@ volumes:
       type: none
       device: ./StoreMate/database
       o: bind
+  timemate-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./TimeMate/database
+      o: bind
   auth-data:
     driver: local
     driver_opts:
@@ -158,3 +196,4 @@ networks:
   mainpage:
   authentification:
   storemate:
+  timemate:
