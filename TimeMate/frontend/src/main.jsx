@@ -42,7 +42,7 @@ const isWithinOpening = (dt) => {
 /* ---------------- App ---------------- */
 function App(){
     /* UI State */
-    const [showMap,setShowMap] = useState(false);
+    const [showMap,setShowMap] = useState(true);
     const [errorFx,setErrorFx] = useState(false);
     const [errorMsg,setErrorMsg] = useState('');
     const [showConfirm, setShowConfirm] = useState(false);
