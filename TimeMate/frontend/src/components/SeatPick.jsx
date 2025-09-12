@@ -1,44 +1,37 @@
 // src/components/SeatPick.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 
-/* ========================== Dummy APIs ========================== */
-async function fetchHallSvg() {
-  return {
-    viewBox: "0 0 1000 600",
-    inner: `
-      <defs>
-        <linearGradient id="bg" x1="0" x2="1">
-          <stop offset="0%" stop-color="#0d1117"/>
-          <stop offset="100%" stop-color="#111827"/>
-        </linearGradient>
-      </defs>
-      <rect x="0" y="0" width="1000" height="600" fill="url(#bg)" />
-      <g opacity=".18">
-        <rect x="60" y="60" width="880" height="480" rx="18" fill="#fff" />
-      </g>
-    `,
-  };
-}
+const API_BASE = "http://localhost:8301";
+const EMPTY = [];
 
-async function fetchSeatsDummy({ datetime, extras }) {
-  const hour = datetime.getHours();
-  const eCount = extras.length;
-  const base = [
-    { id: "A-11", x: 220, y: 180, label: "A-11", info: "Fensterplatz, 2 Pers." },
-    { id: "A-12", x: 320, y: 180, label: "A-12", info: "Zentral, 4 Pers." },
-    { id: "B-05", x: 520, y: 260, label: "B-05", info: "Nähe Eingang, 2 Pers." },
-    { id: "C-21", x: 780, y: 360, label: "C-21", info: "Ecke, 6 Pers." },
-    { id: "D-02", x: 420, y: 420, label: "D-02", info: "Ruhebereich, 2 Pers." },
-  ];
-  return base.map((s, idx) => {
-    let status = "free";
-    if ((idx + hour) % 5 === 0) status = "reserved";
-    if ((idx + eCount) % 7 === 0) status = "unsuitable";
-    return { ...s, status };
+function getToken() {
+  return "string";
+}
+async function api(path, { method = "GET", body } = {}) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: body ? JSON.stringify(body) : undefined,
   });
+  const ct = res.headers.get("content-type") || "";
+  if (!ct.includes("application/json")) {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return {};
+  }
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json?.success === false) {
+    const payload = json?.payload || {};
+    const err = new Error(payload.message || `HTTP ${res.status}`);
+    err.code = payload.code || "error";
+    err.status = res.status;
+    throw err;
+  }
+  return json?.payload ?? json;
 }
 
-/* ========================== Utils ========================== */
 function useDebouncedValue(v, ms) {
   const [d, setD] = useState(v);
   useEffect(() => {
@@ -49,17 +42,24 @@ function useDebouncedValue(v, ms) {
 }
 
 function SeatIcon({ status, selected }) {
-  let fill = "#7fffb0", stroke = "#0f5132", glyph = null;
+  let fill = "#7fffb0";
+  let stroke = "#0f5132";
+  let glyph = null;
   if (status === "reserved") {
-    fill = "#ff9aa2"; stroke = "#842029";
+    fill = "#ff9aa2";
+    stroke = "#842029";
     glyph = <path d="M -5 -5 L 5 5 M 5 -5 L -5 5" stroke={stroke} strokeWidth="2.5" />;
   } else if (status === "unsuitable") {
-    fill = "#bfc7d5"; stroke = "#374151";
+    fill = "#bfc7d5";
+    stroke = "#374151";
     glyph = <path d="M -6 0 L 6 0" stroke={stroke} strokeWidth="3" />;
   } else {
     glyph = <path d="M -6 1 L 6 1 M 0 -6 L 0 6" stroke={stroke} strokeWidth="2" opacity=".65" />;
   }
-  if (selected) { fill = "#a5b4fc"; stroke = "#312e81"; }
+  if (selected) {
+    fill = "#a5b4fc";
+    stroke = "#312e81";
+  }
   return (
     <g>
       <circle r="12" fill={fill} stroke={stroke} strokeWidth="2" />
@@ -69,35 +69,53 @@ function SeatIcon({ status, selected }) {
   );
 }
 
-/* ========================== Component ========================== */
+function parseBackendSvg(svgText) {
+  try {
+    const vbMatch = svgText.match(/viewBox="([^"]+)"/i) || svgText.match(/viewBox='([^']+)'/i);
+    const viewBox = vbMatch ? vbMatch[1] : "0 0 1000 600";
+    const innerMatch = svgText.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+    const inner = innerMatch ? innerMatch[1] : svgText;
+    return { viewBox, inner };
+  } catch {
+    return { viewBox: "0 0 1000 600", inner: "" };
+  }
+}
+
 export default function SeatPick({
-  baseDate, hour, minute, extras,
-  selectedSeatId = null, onSelectSeat,
-  debounceMs = 800,
+  restaurantId,
+  baseDate,
+  hour,
+  minute,
+  people = 2,
+  extras,
+  seats,
+  selectedSeatId = null,
+  onSelectSeat,
+  debounceMs = 700,
 }) {
-  /* ---- data ---- */
   const [hall, setHall] = useState({ viewBox: "0 0 1000 600", inner: "" });
-  const [seats, setSeats] = useState([]);
+  const [seatsWithStatus, setSeatsWithStatus] = useState([]);
   const [loadingSeats, setLoadingSeats] = useState(false);
 
-  /* ---- ui ---- */
   const [activeSeat, setActiveSeat] = useState(null);
   const [infoPos, setInfoPos] = useState({ x: 0, y: 0 });
   const [infoVisible, setInfoVisible] = useState(false);
   const infoRef = useRef(null);
   const [cardSize, setCardSize] = useState({ w: 260, h: 130 });
-  const infoSide = useRef('right'); // 'right' or 'left' with hysteresis to avoid teleporting
+  const infoSide = useRef("right");
 
-  /* ---- pan/zoom ---- */
   const [scale, setScale] = useState(1);
   const [tx, setTx] = useState(0);
   const [ty, setTy] = useState(0);
 
   const containerRef = useRef(null);
-  const pointers = useRef(new Map()); // pointerId -> {x,y}
-  const lastTapTs   = useRef(0);
-  const tapInfo     = useRef({ startX: 0, startY: 0, moved: false });
+  const pointers = useRef(new Map());
+  const lastTapTs = useRef(0);
+  const tapInfo = useRef({ startX: 0, startY: 0, moved: false });
   const lastSeatClickTs = useRef(0);
+
+  const seatsStable = useMemo(() => (Array.isArray(seats) ? seats : EMPTY), [seats]);
+  const extrasStable = useMemo(() => (Array.isArray(extras) ? extras : EMPTY), [extras]);
 
   const vb = useMemo(() => {
     const [x, y, w, h] = hall.viewBox.split(" ").map(Number);
@@ -111,85 +129,126 @@ export default function SeatPick({
   }, [baseDate, hour, minute]);
 
   const debouncedDateTime = useDebouncedValue(dateTime, debounceMs);
-  const debouncedExtras   = useDebouncedValue(Array.isArray(extras) ? extras : [...extras], debounceMs);
+  const debouncedPeople = useDebouncedValue(people, debounceMs);
+  useDebouncedValue(extrasStable, debounceMs);
 
-  /* ---- helpers ---- */
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const minScale = 0.6, maxScale = 5;
+  const minScale = 0.6;
+  const maxScale = 5;
 
-  /* ---- load map once ---- */
   useEffect(() => {
     let alive = true;
     (async () => {
-      const h = await fetchHallSvg();
-      if (!alive) return;
-      setHall(h);
+      try {
+        const res = await fetch(`${API_BASE}/map_svg/${encodeURIComponent(restaurantId)}`);
+        if (!alive) return;
+        if (res.ok) {
+          const svg = await res.text();
+          setHall(parseBackendSvg(svg));
+        } else {
+          setHall({ viewBox: "0 0 1000 600", inner: "" });
+        }
+      } catch {
+        if (alive) setHall({ viewBox: "0 0 1000 600", inner: "" });
+      }
     })();
-    return () => { alive = false; };
-  }, []);
+    return () => {
+      alive = false;
+    };
+  }, [restaurantId]);
 
-  /* ---- initial fit (zentriert + Innenabstand) + on resize ---- */
   useEffect(() => {
     const wrap = containerRef.current;
     if (!wrap || !vb.w || !vb.h) return;
-
     const fit = () => {
       const { width: cw, height: ch } = wrap.getBoundingClientRect();
       if (!cw || !ch) return;
-
-      // ~5% Innenabstand (mind. 12px), dann maximaler Scale der in beide Richtungen passt
       const pad = Math.max(12, Math.min(cw, ch) * 0.05);
-      const s   = Math.min((cw - 2 * pad) / vb.w, (ch - 2 * pad) / vb.h);
+      const s = Math.min((cw - 2 * pad) / vb.w, (ch - 2 * pad) / vb.h);
       const contentW = vb.w * s;
       const contentH = vb.h * s;
-
       setScale(s);
       setTx((cw - contentW) / 2);
       setTy((ch - contentH) / 2);
     };
-
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(wrap);
     return () => ro.disconnect();
   }, [vb.w, vb.h]);
 
-  /* ---- fetch seats debounced ---- */
   useEffect(() => {
     let alive = true;
-    setLoadingSeats(true);
-    (async () => {
+    const load = async () => {
+      setLoadingSeats(true);
       try {
-        const data = await fetchSeatsDummy({ datetime: debouncedDateTime, extras: debouncedExtras });
+        const base = seatsStable.map((s) => ({ ...s }));
+        const checks = base.map((s) => {
+          const unsuitable =
+            debouncedPeople < (s.min_people ?? 1) || debouncedPeople > (s.max_people ?? 9999);
+          if (unsuitable) return Promise.resolve({ id: s.id, status: "unsuitable" });
+          return api("/check", {
+            method: "POST",
+            body: {
+              restaurant_id: restaurantId,
+              date: debouncedDateTime.toISOString(),
+              people: debouncedPeople,
+              seat_id: s.id,
+            },
+          })
+            .then((r) => ({ id: s.id, status: r.ok ? "free" : "reserved" }))
+            .catch((e) => {
+              const hard = ["holiday", "closed", "lead_time_violation"];
+              return { id: s.id, status: hard.includes(e.code) ? "reserved" : "unsuitable" };
+            });
+        });
+        const results = await Promise.all(checks);
         if (!alive) return;
-        setSeats(data);
+        const withStatus = base.map((s) => {
+          const st = results.find((r) => r.id === s.id)?.status || "unsuitable";
+          return {
+            ...s,
+            status: st,
+            info:
+              s.info ||
+              `Platz ${s.label} • ${s.min_people ? `min ${s.min_people}` : ""}${
+                s.min_people && s.max_people ? " / " : ""
+              }${s.max_people ? `max ${s.max_people}` : ""}`,
+          };
+        });
+        setSeatsWithStatus(withStatus);
         setActiveSeat(null);
         setInfoVisible(false);
       } finally {
         if (alive) setLoadingSeats(false);
       }
-    })();
-    return () => { alive = false; };
-  }, [debouncedDateTime, debouncedExtras]);
+    };
+    load();
+    return () => {
+      alive = false;
+    };
+  }, [restaurantId, seatsStable, debouncedDateTime, debouncedPeople]);
 
-  /* ---- pan/zoom helpers ---- */
   const clampPan = (ntx, nty, s) => {
     const wrap = containerRef.current;
     if (!wrap) return { ntx, nty };
-
     const { width: cw, height: ch } = wrap.getBoundingClientRect();
     const contentW = vb.w * s;
     const contentH = vb.h * s;
-
-    // Wenn Content kleiner ist → zentrieren; sonst clampen
     let minX, maxX;
-    if (contentW <= cw) { minX = maxX = (cw - contentW) / 2; }
-    else { minX = cw - contentW; maxX = 0; }
-
+    if (contentW <= cw) {
+      minX = maxX = (cw - contentW) / 2;
+    } else {
+      minX = cw - contentW;
+      maxX = 0;
+    }
     let minY, maxY;
-    if (contentH <= ch) { minY = maxY = (ch - contentH) / 2; }
-    else { minY = ch - contentH; maxY = 0; }
-
+    if (contentH <= ch) {
+      minY = maxY = (ch - contentH) / 2;
+    } else {
+      minY = ch - contentH;
+      maxY = 0;
+    }
     const ctX = clamp(ntx, minX, maxX);
     const ctY = clamp(nty, minY, maxY);
     return { ntx: ctX, nty: ctY };
@@ -197,18 +256,17 @@ export default function SeatPick({
 
   const applyPan = (dx, dy) => {
     const { ntx, nty } = clampPan(tx + dx, ty + dy, scale);
-    setTx(ntx); setTy(nty);
+    setTx(ntx);
+    setTy(nty);
     if (activeSeat) repositionInfo(activeSeat, ntx, nty, scale);
   };
 
   const zoomAt = (cx, cy, factor) => {
     const newScale = clamp(scale * factor, minScale, maxScale);
-
     const sx = (cx - tx) / scale;
     const sy = (cy - ty) / scale;
     let ntx = cx - sx * newScale;
     let nty = cy - sy * newScale;
-
     ({ ntx, nty } = clampPan(ntx, nty, newScale));
     setScale(newScale);
     setTx(ntx);
@@ -216,7 +274,6 @@ export default function SeatPick({
     if (activeSeat) repositionInfo(activeSeat, ntx, nty, newScale);
   };
 
-  /* ---- wheel (Desktop + Trackpad) ---- */
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -234,9 +291,8 @@ export default function SeatPick({
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [scale, tx, ty, activeSeat]);
+  }, [scale, tx, ty]);
 
-  /* ---- pointer gestures (Mobile + Desktop) ---- */
   const onPointerDown = (e) => {
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     tapInfo.current = { startX: e.clientX, startY: e.clientY, moved: false };
@@ -249,16 +305,15 @@ export default function SeatPick({
       lastTapTs.current = now;
     }
   };
-  const onPointerUp = (e) => { pointers.current.delete(e.pointerId); };
+  const onPointerUp = (e) => {
+    pointers.current.delete(e.pointerId);
+  };
   const onPointerMove = (e) => {
     if (!pointers.current.has(e.pointerId)) return;
-
-    // Tap vs. Drag
     if (!tapInfo.current.moved) {
       const d = Math.hypot(e.clientX - tapInfo.current.startX, e.clientY - tapInfo.current.startY);
       if (d > 6) tapInfo.current.moved = true;
     }
-
     const count = pointers.current.size;
     if (count === 1) {
       const prev = pointers.current.get(e.pointerId);
@@ -272,18 +327,16 @@ export default function SeatPick({
       const entries = [...pointers.current.entries()];
       const [id1, p1] = entries[0];
       const [id2, p2] = entries[1];
-      let n1 = p1, n2 = p2;
+      let n1 = p1;
+      let n2 = p2;
       if (e.pointerId === id1) n1 = { x: e.clientX, y: e.clientY };
       if (e.pointerId === id2) n2 = { x: e.clientX, y: e.clientY };
-
       const prevDist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
       const nextDist = Math.hypot(n1.x - n2.x, n1.y - n2.y);
       const factor = prevDist ? nextDist / prevDist : 1;
-
       const rect = containerRef.current.getBoundingClientRect();
       const mid = { x: (n1.x + n2.x) / 2 - rect.left, y: (n1.y + n2.y) / 2 - rect.top };
       zoomAt(mid.x, mid.y, factor);
-
       pointers.current.set(id1, n1);
       pointers.current.set(id2, n2);
     }
@@ -294,117 +347,82 @@ export default function SeatPick({
     zoomAt(e.clientX - rect.left, e.clientY - rect.top, 1.6);
   };
 
-  /* ---- info card positioning ---- */
   const svgToClient = (x, y, s = scale, ox = tx, oy = ty) => ({
     left: x * s + ox,
-    top:  y * s + oy,
+    top: y * s + oy,
   });
 
   const repositionInfo = (seat, ox = tx, oy = ty, s = scale) => {
     const wrap = containerRef.current;
     if (!wrap || !seat) return;
-
     const { width: cw, height: ch } = wrap.getBoundingClientRect();
     const p = svgToClient(seat.x, seat.y, s, ox, oy);
-
-    const margin = 8;         // keep a small margin to container edges
-    const pad = 12;           // gap seat ↔ card when side-by-side
+    const margin = 8;
+    const pad = 12;
     const cardW = cardSize.w || 260;
     const cardH = cardSize.h || 130;
-
-    // Is seat inside the visible container (with a small safety margin)?
-    const seatInside =
-      p.left >= margin &&
-      p.left <= cw - margin &&
-      p.top  >= margin &&
-      p.top  <= ch - margin;
-
-    // --- If seat is visible: keep card near it within a radius; avoid teleport by sticky side ---
+    const seatInside = p.left >= margin && p.left <= cw - margin && p.top >= margin && p.top <= ch - margin;
     if (seatInside) {
-      // Hysteresis for choosing left/right side (prevents rapid flipping)
-      const spaceRight = (cw - margin) - (p.left + pad) - cardW;         // free pixels on right
-      const spaceLeft  = (p.left - pad) - margin - cardW;                 // free pixels on left
-      const switchNeed = -12;   // how far "negative" we allow before considering a switch
-      const switchGap  = 24;    // require some advantage before switching side
-
-      if (infoSide.current === 'right') {
-        if (spaceRight < switchNeed && spaceLeft > spaceRight + switchGap) {
-          infoSide.current = 'left';
-        }
-      } else { // 'left'
-        if (spaceLeft < switchNeed && spaceRight > spaceLeft + switchGap) {
-          infoSide.current = 'right';
-        }
+      const spaceRight = cw - margin - (p.left + pad) - cardW;
+      const spaceLeft = p.left - pad - margin - cardW;
+      const switchNeed = -12;
+      const switchGap = 24;
+      if (infoSide.current === "right") {
+        if (spaceRight < switchNeed && spaceLeft > spaceRight + switchGap) infoSide.current = "left";
+      } else {
+        if (spaceLeft < switchNeed && spaceRight > spaceLeft + switchGap) infoSide.current = "right";
       }
-
-      // Base position: to the chosen side, vertically centered to the seat
-      let left = (infoSide.current === 'right')
-        ? (p.left + pad)
-        : (p.left - cardW - pad);
-      let top  = p.top - cardH / 2;
-
-      // Limit movement to a circle around the seat → smooth following without big jumps
-      const R = Math.max(64, Math.min(cw, ch) * 0.12); // radius in px
+      let left = infoSide.current === "right" ? p.left + pad : p.left - cardW - pad;
+      let top = p.top - cardH / 2;
+      const R = Math.max(64, Math.min(cw, ch) * 0.12);
       let cx = left + cardW / 2;
-      let cy = top  + cardH / 2;
+      let cy = top + cardH / 2;
       let dx = cx - p.left;
       let dy = cy - p.top;
       const dist = Math.hypot(dx, dy);
       if (dist > R) {
         const k = R / dist;
         cx = p.left + dx * k;
-        cy = p.top  + dy * k;
+        cy = p.top + dy * k;
         left = cx - cardW / 2;
-        top  = cy - cardH / 2;
+        top = cy - cardH / 2;
       }
-
-      // Finally clamp to container so card always remains fully inside
       left = Math.max(margin, Math.min(left, cw - margin - cardW));
-      top  = Math.max(margin, Math.min(top,  ch - margin - cardH));
-
+      top = Math.max(margin, Math.min(top, ch - margin - cardH));
       setInfoPos({ x: left, y: top });
       return;
     }
-
-    // --- If seat is off-screen: stick to nearest wall along the direction toward the seat ---
-    // Compute ray from container center → seat point, and intersect with the "inner" rectangle
     const ccx = cw / 2;
     const ccy = ch / 2;
     const vx = p.left - ccx;
-    const vy = p.top  - ccy;
-
-    // if seat projects exactly at center (degenerate), just center the card
+    const vy = p.top - ccy;
     if (vx === 0 && vy === 0) {
       const left = Math.max(margin, Math.min(ccx - cardW / 2, cw - margin - cardW));
-      const top  = Math.max(margin, Math.min(ccy - cardH / 2, ch - margin - cardH));
+      const top = Math.max(margin, Math.min(ccy - cardH / 2, ch - margin - cardH));
       setInfoPos({ x: left, y: top });
       return;
     }
-
-    const innerLeft   = margin + cardW / 2;
-    const innerRight  = cw - margin - cardW / 2;
-    const innerTop    = margin + cardH / 2;
+    const innerLeft = margin + cardW / 2;
+    const innerRight = cw - margin - cardW / 2;
+    const innerTop = margin + cardH / 2;
     const innerBottom = ch - margin - cardH / 2;
-
     const ts = [];
-    if (vx > 0) ts.push((innerRight  - ccx) / vx);
-    if (vx < 0) ts.push((innerLeft   - ccx) / vx);
+    if (vx > 0) ts.push((innerRight - ccx) / vx);
+    if (vx < 0) ts.push((innerLeft - ccx) / vx);
     if (vy > 0) ts.push((innerBottom - ccy) / vy);
-    if (vy < 0) ts.push((innerTop    - ccy) / vy);
-
-    const candidates = ts.filter(t => t > 0);
+    if (vy < 0) ts.push((innerTop - ccy) / vy);
+    const candidates = ts.filter((t) => t > 0);
     const tMin = Math.min(...candidates);
     const hitX = ccx + vx * tMin;
     const hitY = ccy + vy * tMin;
-
     const left = hitX - cardW / 2;
-    const top  = hitY - cardH / 2;
-
+    const top = hitY - cardH / 2;
     setInfoPos({
       x: Math.max(margin, Math.min(left, cw - margin - cardW)),
-      y: Math.max(margin, Math.min(top,  ch - margin - cardH)),
+      y: Math.max(margin, Math.min(top, ch - margin - cardH)),
     });
   };
+
   useEffect(() => {
     if (!activeSeat) return;
     const el = infoRef.current;
@@ -418,15 +436,18 @@ export default function SeatPick({
     return () => ro.disconnect();
   }, [activeSeat]);
 
-  useEffect(() => { if (activeSeat) repositionInfo(activeSeat); }, [activeSeat, scale, tx, ty]);
+  useEffect(() => {
+    if (activeSeat) repositionInfo(activeSeat);
+  }, [activeSeat, scale, tx, ty]);
 
   useEffect(() => {
-    const wrap = containerRef.current; if (!wrap) return;
+    const wrap = containerRef.current;
+    if (!wrap) return;
     const ro = new ResizeObserver(() => activeSeat && repositionInfo(activeSeat));
-    ro.observe(wrap); return () => ro.disconnect();
+    ro.observe(wrap);
+    return () => ro.disconnect();
   }, [activeSeat]);
 
-  /* ---- seat tap/click ---- */
   const openSeatInfo = (seat) => {
     setActiveSeat(seat);
     repositionInfo(seat);
@@ -438,7 +459,6 @@ export default function SeatPick({
     e.stopPropagation();
     if (seat.status === "reserved") return;
     if (!tapInfo.current.moved) {
-      // einige Mobile-Browser feuern click zusätzlich → debounce
       const now = Date.now();
       if (now - lastSeatClickTs.current < 250) return;
       lastSeatClickTs.current = now;
@@ -447,7 +467,6 @@ export default function SeatPick({
   };
 
   const handleSeatClick = (seat, e) => {
-    // Fallback (ältere WebViews)
     e.stopPropagation();
     const now = Date.now();
     if (now - lastSeatClickTs.current < 250) return;
@@ -464,12 +483,11 @@ export default function SeatPick({
   return (
     <section className="section h-80dvh reveal rounded-4 p-4 mb-4 surface d-flex flex-column">
       <h2 className="h5 mb-3">Karte</h2>
-
       <div
         ref={containerRef}
         className="position-relative w-100 flex-grow-1"
         style={{
-          minHeight: 0,                 // verhindert Überlaufen
+          minHeight: 0,
           overflow: "hidden",
           borderRadius: 12,
           touchAction: "none",
@@ -485,15 +503,10 @@ export default function SeatPick({
         onPointerCancel={onPointerUp}
         onPointerLeave={onPointerUp}
       >
-        <svg
-          viewBox={hall.viewBox}
-          width="100%"
-          height="100%"
-          style={{ background: "rgba(255,255,255,.02)", display: "block" }}
-        >
+        <svg viewBox={hall.viewBox} width="100%" height="100%" style={{ background: "rgba(255,255,255,.02)", display: "block" }}>
           <g transform={gTransform}>
             <g dangerouslySetInnerHTML={{ __html: hall.inner }} />
-            {seats.map((seat) => (
+            {seatsWithStatus.map((seat) => (
               <g
                 key={seat.id}
                 pointerEvents="visiblePainted"
@@ -503,21 +516,13 @@ export default function SeatPick({
                 onClick={(e) => handleSeatClick(seat, e)}
               >
                 <SeatIcon status={seat.status} selected={selectedSeatId === seat.id} />
-                <text
-                  y="28"
-                  fontSize="10"
-                  textAnchor="middle"
-                  fill="rgba(255,255,255,.85)"
-                  style={{ pointerEvents: "none" }}
-                >
+                <text y="28" fontSize="10" textAnchor="middle" fill="rgba(255,255,255,.85)" style={{ pointerEvents: "none" }}>
                   {seat.label}
                 </text>
               </g>
             ))}
           </g>
         </svg>
-
-        {/* Info-Card */}
         {activeSeat && (
           <div
             ref={infoRef}
@@ -544,24 +549,31 @@ export default function SeatPick({
                 className="badge"
                 style={{
                   background:
-                    activeSeat.status === "free" ? "rgba(70,255,150,.15)" :
-                    activeSeat.status === "reserved" ? "rgba(255,70,120,.15)" :
-                    "rgba(180,190,200,.15)",
+                    activeSeat.status === "free"
+                      ? "rgba(70,255,150,.15)"
+                      : activeSeat.status === "reserved"
+                      ? "rgba(255,70,120,.15)"
+                      : "rgba(180,190,200,.15)",
                   color:
-                    activeSeat.status === "free" ? "#8ff5c2" :
-                    activeSeat.status === "reserved" ? "#ff9fb6" :
-                    "#cbd5e1",
+                    activeSeat.status === "free"
+                      ? "#8ff5c2"
+                      : activeSeat.status === "reserved"
+                      ? "#ff9fb6"
+                      : "#cbd5e1",
                 }}
               >
                 {activeSeat.status === "free" ? "frei" : activeSeat.status === "reserved" ? "belegt" : "nicht passend"}
               </span>
             </div>
-            <div className="text-muted small mb-2">{activeSeat.info}</div>
+            <div className="text-muted small mb-2">{activeSeat.info || "Sitzplatz"}</div>
             <div className="d-flex gap-2">
               <button
                 type="button"
                 className="btn btn-sm btn-outline-light"
-                onClick={() => { setInfoVisible(false); setTimeout(() => setActiveSeat(null), 120); }}
+                onClick={() => {
+                  setInfoVisible(false);
+                  setTimeout(() => setActiveSeat(null), 120);
+                }}
               >
                 Schließen
               </button>
@@ -577,12 +589,7 @@ export default function SeatPick({
             </div>
           </div>
         )}
-
-        {/* Zoom Controls */}
-        <div
-          className="d-flex flex-column"
-          style={{ position: "absolute", left: 12, bottom: 12, gap: 8, zIndex: 4 }}
-        >
+        <div className="d-flex flex-column" style={{ position: "absolute", left: 12, bottom: 12, gap: 8, zIndex: 4 }}>
           <button
             type="button"
             className="btn btn-light btn-sm"
@@ -606,8 +613,6 @@ export default function SeatPick({
             －
           </button>
         </div>
-
-        {/* Loader */}
         {loadingSeats && (
           <div
             className="position-absolute"
@@ -620,7 +625,7 @@ export default function SeatPick({
               background: "rgba(0,0,0,.35)",
               border: "1px solid rgba(255,255,255,.12)",
               backdropFilter: "blur(2px)",
-              fontSize: 12
+              fontSize: 12,
             }}
           >
             Aktualisiere Plätze…

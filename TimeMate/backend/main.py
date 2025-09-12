@@ -3,12 +3,28 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
 import uuid
+from typing import Optional
+from fastapi.middleware.cors import CORSMiddleware
+
 from database import Base, engine, get_db
 from models import Restaurant, RestaurantSettings, Reservation
 from schemas import OpeningWindow, HolidaysResponse, QuickCheckRequest, QuickCheckResponse, CheckRequest, CheckResponse, ReserveRequest, ReserveResponse, VerifyResponse, ConfirmRequest, ConfirmResponse, DurationResponse, SettingsResponse, RegisterRestaurantRequest, UpsertSettingsRequest, SeatDef
 from settings_store import ensure_restaurant, get_settings, upsert_settings
 from emailer import send_verification_email
 app = FastAPI(title="Reservations Service")
+
+# deine bestehende app mit allen Routen
+
+# NACHDEM alle Routen definiert sind:
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],   # oder ["*"] wenn du willst
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
+    allow_credentials=False,                   # keine Cookies → ok mit "*"
+    max_age=86400
+)
+
 @app.on_event("startup")
 def _init():
     Base.metadata.create_all(bind=engine)
@@ -103,6 +119,8 @@ def register_restaurant(payload: RegisterRestaurantRequest, db: Session = Depend
         db.add(s)
         db.commit()
     return ok({"id": r.id, "username": r.username, "display_name": r.display_name})
+
+
 @app.post("/restaurants/settings/upsert")
 def upsert_restaurant_settings(payload: UpsertSettingsRequest, db: Session = Depends(get_db)):
     ensure_restaurant(db, payload.restaurant_id)
@@ -124,7 +142,7 @@ def map_svg(restaurant_id: str, db: Session = Depends(get_db)):
     ensure_restaurant(db, restaurant_id)
     s = get_settings(db, restaurant_id)
     if not s or not s.map_svg:
-        raise HTTPException(status_code=404, detail={"code": "svg_not_found", "message": "no svg for restaurant"})
+        raise HTTPException(status_code=407, detail={"code": "svg_not_found", "message": "no svg for restaurant"})
     return PlainTextResponse(content=s.map_svg, media_type="image/svg+xml")
 @app.get("/seats/{restaurant_id}")
 def get_seats(restaurant_id: str, db: Session = Depends(get_db)):
@@ -234,3 +252,27 @@ def duration(restaurant_id: str, people: int = 2, db: Session = Depends(get_db))
     ensure_restaurant(db, restaurant_id)
     dur, buf = compute_duration(people)
     return ok(DurationResponse(estimated_occupancy_min=dur, buffer_min=buf).model_dump())
+
+def _norm(s: Optional[str]) -> str:
+    return (s or "").strip().casefold()
+
+def seat_name_exists(db: Session, restaurant_id: str, name: str, exclude_seat_id: Optional[str] = None) -> bool:
+    s = get_settings(db, restaurant_id)
+    n = _norm(name)
+    for x in (s.seats or []):
+        if exclude_seat_id and x.get("id") == exclude_seat_id:
+            continue
+        if _norm(x.get("label") or x.get("name")) == n:
+            return True
+    return False
+
+
+
+
+@app.get("/exists/{restaurant_id}")
+def exists_seat_name(restaurant_id: str, db: Session = Depends(get_db)):
+    r = db.query(Restaurant).filter(Restaurant.id == restaurant_id).first()
+    if not r:
+        return ok({"exists": False})
+    return ok({"exists": True})
+

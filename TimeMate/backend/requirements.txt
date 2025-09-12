@@ -2,5 +2,7 @@ fastapi>=0.115.0
 uvicorn>=0.30.0
 SQLAlchemy>=2.0.32
 psycopg2-binary>=2.9.9
-pydantic>=2.8.2
+pydantic[email]>=2.8.2
 python-multipart>=0.0.9
+python-dotenv
+httpx
