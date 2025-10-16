@@ -2,72 +2,74 @@
 
 ## English
 
-**Prereact** is a modular **practice management system** designed for medical professionals.  
-It integrates multiple core services to support **inventory tracking**, **billing**, and **appointment scheduling** within a unified platform.
+**Prereact** is a modular **practice management system** for medical professionals.  
+It integrates multiple services for **inventory tracking**, **billing**, and **appointment scheduling**, all within a unified, secure, and scalable architecture.
 
 ### Overview
 
-Each service (inventory, scheduling, billing, authentication) is fully **dockerized** and includes its own **frontend**, **backend**, and **database** component.
-
-The system runs behind an **NGINX reverse proxy** and uses an **automated SSL certification service** for secure communication.
+Each module (inventory, scheduling, billing, authentication) is **fully containerized** and includes its own **frontend**, **backend**, and **database**.  
+The system runs behind an **NGINX reverse proxy** with **automated SSL certification**, ensuring secure HTTPS communication for all services.
 
 ### Architecture
 
-- **Frontend:** React  
-- **Backend:** Node.js / Express  
+- **Frontend:** React, Bootstrap, Tailwind CSS, Vite, Node.js  
+- **Backend:** FastAPI (Python)  
 - **Databases:** PostgreSQL and MongoDB  
-- **Proxy:** NGINX (reverse proxy + SSL automation via Certbot)  
-- **Auth Service:** Centralized authentication and role-based access control  
-- **Deployment:** Fully containerized (Docker, Docker Compose)
+- **Proxy:** NGINX reverse proxy + automatic SSL (Certbot)  
+- **Authentication:** Centralized service with token-based login and role management  
+- **Deployment:** Docker / Docker Compose (fully modular per service)
 
 ### Features
 
-- Inventory management system for tracking medical supplies  
-- Billing and invoice generation tools  
-- Appointment scheduling interface with real-time updates  
-- Unified authentication across all modules  
-- Separate backend, frontend, and database per service  
-- Secure HTTPS setup with automated certificate renewal
+- **Inventory Management System** — tracks medical supplies, stock levels, and consumption  
+- **Billing System** — generates and manages invoices for patients and insurance  
+- **Appointment Scheduler** — organizes patient bookings, staff availability, and daily planning  
+- **Authentication Tool** — unified login across all modules with secure token validation  
+- Automated SSL setup and renewal  
+- Isolated databases and APIs for each subsystem
 
 ### Visual Overview
 
-- **Inventory System:** Tracks stock and supply flow  
-- **Appointment Scheduler:** Manages patient bookings and calendars  
-- **Main Page:** Central dashboard integrating all services
+| Component | Screenshot |
+|------------|-------------|
+| **Inventory System** | ![Inventory System](images/inventory.png) |
+| **Appointment Scheduling** | ![Appointment System](images/appointments.png) |
+| **Main Dashboard** | ![Main Page](images/mainpage.png) |
 
 ---
 
 ## Deutsch
 
 **Prereact** ist ein modulares **Praxisverwaltungssystem** für Ärztinnen und Ärzte.  
-Es kombiniert **Inventur**, **Abrechnung** und **Terminvergabe** in einer einheitlichen Umgebung.
+Es vereint **Inventur**, **Abrechnung** und **Terminvergabe** in einer sicheren, skalierbaren Umgebung.
 
 ### Übersicht
 
-Jeder Dienst (Inventur, Terminvergabe, Abrechnung, Authentifizierung) ist vollständig **dockerisiert** und besitzt ein eigenes **Frontend**, **Backend** und eine **Datenbank**.
-
-Das System läuft hinter einem **NGINX-Reverse-Proxy** mit einem **automatisierten SSL-Zertifizierungsdienst** für sichere Kommunikation.
+Jeder Dienst (Inventur, Terminplanung, Abrechnung, Authentifizierung) ist **vollständig dockerisiert** und besteht aus eigenem **Frontend**, **Backend** und **Datenbanksystem**.  
+Ein **NGINX-Reverse-Proxy** mit **automatischer SSL-Zertifizierung** sorgt für verschlüsselte Verbindungen.
 
 ### Architektur
 
-- **Frontend:** React  
-- **Backend:** Node.js / Express  
+- **Frontend:** React, Bootstrap, Tailwind CSS, Vite, Node.js  
+- **Backend:** FastAPI (Python)  
 - **Datenbanken:** PostgreSQL und MongoDB  
-- **Proxy:** NGINX (Reverse Proxy + automatische SSL-Zertifizierung über Certbot)  
-- **Auth Service:** Zentrales Authentifizierungs- und Rollenmanagement  
-- **Deployment:** Komplett containerisiert mit Docker / Docker Compose
+- **Proxy:** NGINX (Reverse Proxy + automatische SSL-Erneuerung über Certbot)  
+- **Authentifizierung:** Zentrales Tool mit Token-Login und Rollenverwaltung  
+- **Deployment:** Docker / Docker Compose (modular je Service)
 
 ### Funktionen
 
-- Inventur- und Lagerverwaltung medizinischer Materialien  
-- Abrechnungssystem für Rechnungen und Belege  
-- Terminvergabesystem mit Echtzeit-Übersicht  
-- Zentrale Authentifizierung über alle Module hinweg  
-- Eigenständige Backend-, Frontend- und Datenbankschichten je Service  
-- HTTPS durch automatisierte SSL-Erneuerung
+- **Inventursystem** — Verwaltung medizinischer Bestände und Verbrauchsdaten  
+- **Abrechnungssystem** — Erstellung und Verwaltung von Rechnungen  
+- **Terminvergabesystem** — Planung von Patiententerminen und Praxisabläufen  
+- **Authentifizierungsdienst** — Zentrales Login für alle Module  
+- Vollautomatische SSL-Konfiguration und Zertifikatserneuerung  
+- Separate Backends, Frontends und Datenbanken pro Modul
 
 ### Visuelle Darstellung
 
-- **Inventursystem:** Überblick über Bestände und Materialfluss  
-- **Terminvergabesystem:** Verwaltung von Patienten- und Terminplänen  
-- **Startseite:** Zentrales Dashboard aller Dienste
+| Komponente | Screenshot |
+|-------------|-------------|
+| **Inventursystem** | ![Inventursystem](images/inventory.png) |
+| **Terminvergabesystem** | ![Terminvergabesystem](images/appointments.png) |
+| **Hauptseite** | ![Startseite](images/mainpage.png) |
